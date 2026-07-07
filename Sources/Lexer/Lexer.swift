@@ -108,7 +108,7 @@ public struct Lexer {
     ///   - source: the source text being lexed.
     ///   - offset: the scalar offset at which to begin scanning.
     /// - Returns: the token and the offset of the next unread character.
-    public func nextToken(in source: String, from offset: Int) -> Result<Token, LexerError> {
+    public func nextToken(in source: String, from offset: Int) -> Result<LexerToken, LexerError> {
         let scalars = source.unicodeScalars
         guard offset <= scalars.count else {
             return .failure(.noMatch(offset: offset))
@@ -132,7 +132,7 @@ public struct Lexer {
     ///
     /// Useful for batch lexing where the source is known to be valid.
     /// For streaming use, call `nextToken(in:from:)` in a loop.
-    public func tokenize(_ source: String) -> Result<[Token], LexerError> {
+    public func tokenize(_ source: String) -> Result<[LexerToken], LexerError> {
         return tokenize(source, skipping: skippedTokenNames)
     }
 
@@ -142,8 +142,8 @@ public struct Lexer {
     /// whitespace/comment elision. Use an empty set to keep every token.
     ///
     /// Stops at the first lexer error.
-    public func tokenize(_ source: String, skipping skip: Set<String>) -> Result<[Token], LexerError> {
-        var tokens: [Token] = []
+    public func tokenize(_ source: String, skipping skip: Set<String>) -> Result<[LexerToken], LexerError> {
+        var tokens: [LexerToken] = []
         var offset = 0
         let total = source.unicodeScalars.count
         while offset < total {
@@ -166,7 +166,7 @@ public struct Lexer {
     /// the most recent accepting state and the offset at which it was
     /// reached. Stops when either the source is exhausted or `step`
     /// returns `nil` for the next character.
-    private func scan(source: String, from startOffset: Int) -> Result<Token, LexerError> {
+    private func scan(source: String, from startOffset: Int) -> Result<LexerToken, LexerError> {
         let scalars = source.unicodeScalars
         var scalarIndex = scalars.index(scalars.startIndex, offsetBy: startOffset)
 
@@ -212,7 +212,7 @@ public struct Lexer {
         let endScalarIdx   = scalars.index(scalars.startIndex, offsetBy: endOffset)
         let lexeme = source[startScalarIdx..<endScalarIdx]
 
-        return .success(Token(
+        return .success(LexerToken(
             tokenClass: tokenClass,
             lexeme: lexeme,
             startOffset: startOffset,

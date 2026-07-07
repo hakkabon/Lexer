@@ -13,6 +13,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.6.2"),
         .package(url: "https://github.com/hakkabon/Lexer-FSA.git", branch: "main"),
         .package(url: "https://github.com/hakkabon/Grammar.git", branch: "main"),
+        .package(url: "https://github.com/hakkabon/GrammarTokenizer.git", branch: "main"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -22,6 +23,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Grammar", package: "Grammar"),
                 .product(name: "LexerFSA", package: "lexer-fsa"),
+                .product(name: "Tokenizer", package: "GrammarTokenizer"),
             ]
         ),
         .testTarget(

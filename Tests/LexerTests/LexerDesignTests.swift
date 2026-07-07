@@ -35,7 +35,7 @@ import Testing
 // not `Never`). Returns the unwrapped tokens, recording an issue otherwise.
 // Note: Swift Testing's `Issue.record(_:)` accepts string *literals* (via
 // Comment) but not `String` variables, hence the fixed literal here.
-private func tokens(_ result: Result<[Token], LexerError>) -> [Token] {
+private func tokens(_ result: Result<[LexerToken], LexerError>) -> [LexerToken] {
     if case .success(let toks) = result { return toks }
     Issue.record("expected tokenizing to succeed, but it failed")
     return []
@@ -321,13 +321,13 @@ struct ConstructionReproducibilityTests {
         let source = "a1b2c3"
 
         // Batch.
-        let batch: [Token] = {
+        let batch: [LexerToken] = {
             guard case .success(let ts) = lexer.tokenize(source) else { return [] }
             return ts
         }()
 
         // Streaming.
-        var streamed: [Token] = []
+        var streamed: [LexerToken] = []
         var offset = 0
         while offset < source.unicodeScalars.count {
             switch lexer.nextToken(in: source, from: offset) {
