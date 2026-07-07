@@ -5,9 +5,9 @@ parser in the toolkit (Earley, CYK, LL, LR, RNGLR, GLR, …) consume tokens from
 either this module's automated lexer or GrammarTokenizer's hand-written
 `Tokenizer` — interchangeably, with no parser-side code change.
 
-[![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-orange.svg)](https://swift.org)
-[![Platforms](https://img.shields.io/badge/platforms-macOS%2011%20%7C%20iOS%2012-blue.svg)](https://developer.apple.com/swift/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Swift 5.9+](https://img.shields.io/badge/Swift-5.9%2B-orange.svg)](https://swift.org)  
+[![Platforms](https://img.shields.io/badge/platforms-macOS%2011%20%7C%20iOS%2012-blue.svg)](https://developer.apple.com/swift/)  
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)  
 
 ---
 
