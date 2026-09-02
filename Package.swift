@@ -11,9 +11,9 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.6.2"),
-        .package(url: "https://github.com/hakkabon/Lexer-FSA.git", branch: "main"),
-        .package(url: "https://github.com/hakkabon/Grammar.git", branch: "main"),
-        .package(url: "https://github.com/hakkabon/GrammarTokenizer.git", branch: "main"),
+        .package(url: "https://github.com/hakkabon/Lexer-FSA.git", revision: "5289a38e507bbf63863699a1eb9ac7a4d19aafba"),
+        .package(url: "https://github.com/hakkabon/Grammar.git", revision: "69f85d7a493e1862412c34493e3656e94331df06"),
+        .package(url: "https://github.com/hakkabon/GrammarTokenizer.git", revision: "880af85a1f5809866f9656405c801fd04bcb4df9"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
