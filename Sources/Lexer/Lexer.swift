@@ -84,15 +84,21 @@ public struct Lexer {
             guard case let .dfa(initial, finals, transitions, minimal, tokenMap) = state else {
                 fatalError("State.determinize() did not produce a .dfa state")
             }
+            let effectiveTokenMap = tokenMap.isEmpty
+                ? Dictionary(uniqueKeysWithValues: finals.map { ($0, TokenClass(id: 0, name: "MATCH")) })
+                : tokenMap
             self.dfa = DFSA(
                 initial: initial, finals: finals,
                 transitions: transitions, minimal: minimal,
-                tokenMap: tokenMap)
+                tokenMap: effectiveTokenMap)
         case let .dfa(initial, finals, transitions, minimal, tokenMap):
+            let effectiveTokenMap = tokenMap.isEmpty
+                ? Dictionary(uniqueKeysWithValues: finals.map { ($0, TokenClass(id: 0, name: "MATCH")) })
+                : tokenMap
             self.dfa = DFSA(
                 initial: initial, finals: finals,
                 transitions: transitions, minimal: minimal,
-                tokenMap: tokenMap)
+                tokenMap: effectiveTokenMap)
         }
     }
 
