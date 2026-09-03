@@ -11,7 +11,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.6.2"),
-        .package(url: "https://github.com/hakkabon/Lexer-FSA.git", .upToNextMinor(from: "0.1.0")),
+        .package(url: "https://github.com/hakkabon/Lexer-FSA.git", .upToNextMinor(from: "0.2.0")),
         .package(url: "https://github.com/hakkabon/Grammar.git", .upToNextMinor(from: "0.2.0")),
         .package(url: "https://github.com/hakkabon/GrammarTokenizer.git", .upToNextMinor(from: "0.1.0")),
     ],
