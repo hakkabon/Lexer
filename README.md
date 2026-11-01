@@ -162,6 +162,27 @@ alongside `loadVocabulary(_:)` on the same builder — rule ids are numbered
 starting one past whatever is already registered, so there's no collision
 either way round.
 
+## Incremental tokenization
+
+`RestartAndConvergeTokenizer` provides language-neutral incremental reuse for
+restartable scanners. It validates a UTF-16 edit, retains tokens before a safe
+boundary, scans forward from that boundary, and stops when a generated token
+matches the unchanged old suffix. Reused tokens, lossless elements, and lexer
+diagnostics are then relocated while preserving their identities.
+
+Language packages provide a `RestartableLexer` plus lightweight conformances
+for their token, trivia, and diagnostic values. The coordinator owns document
+state, edit validation, convergence, reuse metrics, and safe full-scan fallback;
+it does not depend on a grammar or concrete token representation.
+
+The key public types are:
+
+- `IncrementalLexerEdit` and `LexicalPosition`;
+- `IncrementalLexicalToken`, `IncrementalLexicalElement`, and
+  `IncrementalLexicalDiagnostic`;
+- `RestartableLexer` and `RestartableLexicalScan`;
+- `RestartAndConvergeTokenizer`, result, and metrics.
+
 ---
 
 ## Dependencies
