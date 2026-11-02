@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "Lexer",
-    platforms: [.macOS(.v11),.iOS(.v12)],
+    platforms: [.macOS(.v11), .iOS(.v14)],
     products: [
         .library(name: "Lexer", targets: ["Lexer"]),
     ],
@@ -14,6 +14,7 @@ let package = Package(
         .package(url: "https://github.com/hakkabon/Lexer-FSA.git", .upToNextMinor(from: "0.2.0")),
         .package(url: "https://github.com/hakkabon/Grammar.git", .upToNextMinor(from: "0.3.0")),
         .package(url: "https://github.com/hakkabon/GrammarTokenizer.git", .upToNextMinor(from: "0.1.0")),
+        .package(path: "../Incremental-Parsing"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -24,6 +25,7 @@ let package = Package(
                 .product(name: "Grammar", package: "Grammar"),
                 .product(name: "LexerFSA", package: "lexer-fsa"),
                 .product(name: "Tokenizer", package: "GrammarTokenizer"),
+                .product(name: "IncrementalParsing", package: "Incremental-Parsing"),
             ]
         ),
         .testTarget(
@@ -31,6 +33,7 @@ let package = Package(
             dependencies: [
                 "Lexer",
                 .product(name: "LexerFSA", package: "lexer-fsa"),
+                .product(name: "IncrementalParsing", package: "Incremental-Parsing"),
             ]
         ),
     ]

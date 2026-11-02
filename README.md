@@ -173,6 +173,11 @@ diagnostics are then relocated while preserving their identities.
 Language packages provide a `RestartableLexer` plus lightweight conformances
 for their token, trivia, and diagnostic values. The coordinator owns document
 state, edit validation, convergence, reuse metrics, and safe full-scan fallback;
+
+Language sessions may now pass `IncrementalParsing.SourceSnapshot` and
+`SourceChange` directly. A single exact replacement uses restart/convergence;
+an atomic multi-edit batch deliberately selects a full scan until native batch
+convergence is available.
 it does not depend on a grammar or concrete token representation.
 
 The key public types are:

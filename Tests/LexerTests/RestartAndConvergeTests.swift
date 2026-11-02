@@ -1,4 +1,5 @@
 import XCTest
+import IncrementalParsing
 @testable import Lexer
 
 final class RestartAndConvergeTests: XCTestCase {
@@ -30,6 +31,29 @@ final class RestartAndConvergeTests: XCTestCase {
 
         XCTAssertFalse(result.metrics.incremental)
         XCTAssertEqual(result.metrics.scannedUTF16Length, 9)
+    }
+
+    func testSharedSourceTransitionDrivesIncrementalScanAndBatchFallsBack() throws {
+        var tokenizer = RestartAndConvergeTokenizer(scanner: WordScanner())
+        let first = IncrementalParsing.SourceSnapshot(
+            text: "one two", revision: .init(1))
+        _ = tokenizer.tokenize(snapshot: first)
+
+        let single = try IncrementalParsing.SourceEdit(
+            baseRevision: .init(1), range: SourceRange(4, 7),
+            replacement: "too").applying(to: first)
+        let incremented = tokenizer.tokenize(
+            snapshot: single.after, change: single)
+        XCTAssertTrue(incremented.metrics.incremental)
+
+        let batch = try SourceEditBatch(
+            baseRevision: .init(2),
+            replacements: [
+                .init(range: SourceRange(0, 1), replacement: "O"),
+                .init(range: SourceRange(5, 6), replacement: "O"),
+            ]).applying(to: single.after)
+        let rescanned = tokenizer.tokenize(snapshot: batch.after, change: batch)
+        XCTAssertFalse(rescanned.metrics.incremental)
     }
 }
 
