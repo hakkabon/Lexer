@@ -28,6 +28,11 @@ and GrammarTokenizer's hand-written `Tokenizer` through the same `TokenStream`
 protocol, so a parser can be written once against `TokenStream` and driven by
 either front end.
 
+For language kits, `GrammarDrivenLexer` is the preferred entry point. It
+consumes the `LexicalSpecification` produced by `GrammarParser`, retains a
+lossless trivia stream, reports UTF-16 ranges, and plugs directly into
+`RestartAndConvergeTokenizer` through the `GrammarIncrementalTokenizer` alias.
+
 ```
 Lexer-FSA ──┐
             ├──▶ Lexer ──▶ (Earley-Parser, CYK-Parser, LL-Parser, …)
@@ -170,8 +175,9 @@ boundary, scans forward from that boundary, and stops when a generated token
 matches the unchanged old suffix. Reused tokens, lossless elements, and lexer
 diagnostics are then relocated while preserving their identities.
 
-Language packages provide a `RestartableLexer` plus lightweight conformances
-for their token, trivia, and diagnostic values. The coordinator owns document
+Artifact-driven language packages use `GrammarDrivenLexer` and only project
+its generic values into any public typed API they choose to expose. They no
+longer need a private scanner or restart/convergence conformances. The coordinator owns document
 state, edit validation, convergence, reuse metrics, and safe full-scan fallback;
 
 Language sessions may now pass `IncrementalParsing.SourceSnapshot` and
