@@ -212,6 +212,9 @@ public struct GrammarDrivenLexer: RestartableLexer {
         switch rule.definition.matcher {
         case .literal(let value):
             return literal(value, in: source, at: offset).map { ($0, false) }
+        case .caseInsensitiveLiteral(let value):
+            return literal(value, in: source, at: offset, caseInsensitive: true)
+                .map { ($0, false) }
         case .literals(let values):
             return values.compactMap { literal($0, in: source, at: offset) }
                 .max().map { ($0, false) }
@@ -247,10 +250,18 @@ public struct GrammarDrivenLexer: RestartableLexer {
         }
     }
 
-    private func literal(_ value: String, in source: NSString, at offset: Int) -> Int? {
+    private func literal(_ value: String, in source: NSString, at offset: Int,
+                         caseInsensitive: Bool = false) -> Int? {
         let length = (value as NSString).length
-        guard length > 0, offset + length <= source.length,
-              source.substring(with: NSRange(location: offset, length: length)) == value else {
+        guard length > 0, offset + length <= source.length else {
+            return nil
+        }
+        let candidate = source.substring(with: NSRange(location: offset, length: length))
+        if caseInsensitive {
+            guard candidate.compare(value, options: [.caseInsensitive]) == .orderedSame else {
+                return nil
+            }
+        } else if candidate != value {
             return nil
         }
         return length

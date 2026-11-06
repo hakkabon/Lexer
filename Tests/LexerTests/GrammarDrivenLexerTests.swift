@@ -6,7 +6,7 @@ import Testing
 struct GrammarDrivenLexerTests {
     private var specification: LexicalSpecification {
         LexicalSpecification(rules: [
-            .init(name: "IF", matcher: .literal("if"), priority: 0),
+            .init(name: "IF", matcher: .caseInsensitiveLiteral("if"), priority: 0),
             .init(name: "ASSIGN", matcher: .literal(":="), priority: 1),
             .init(name: "IDENTIFIER",
                   matcher: .regularExpression("[A-Za-z_][A-Za-z0-9_]*"), priority: 2),
@@ -20,7 +20,7 @@ struct GrammarDrivenLexerTests {
 
     @Test func maximalMunchRetainsLosslessTriviaAndUsesUTF16() throws {
         let scanner = try GrammarDrivenLexer(specification: specification)
-        let source = "if iffy /* note */ := 2"
+        let source = "IF iffy /* note */ := 2"
         let result = scanner.scan(
             text: source, from: .start, revision: 1, shouldStopBefore: nil)
 
