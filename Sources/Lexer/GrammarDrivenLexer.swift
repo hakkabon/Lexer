@@ -1,5 +1,6 @@
 import Foundation
 import Grammar
+import IncrementalParsing
 
 public struct GrammarLexicalToken: Sendable, Equatable, Identifiable {
     public let id: String
@@ -74,8 +75,10 @@ public struct GrammarDrivenLexer: RestartableLexer {
     }
 
     private let rules: [Rule]
+    let grammarFingerprint: String?
 
     public init(specification: LexicalSpecification) throws {
+        grammarFingerprint = nil
         var names = Set<String>()
         var compiled: [Rule] = []
         for (ordinal, definition) in specification.rules.enumerated() {
@@ -104,7 +107,23 @@ public struct GrammarDrivenLexer: RestartableLexer {
     }
 
     public init(grammar: Grammar) throws {
-        try self.init(specification: grammar.lexicalSpecification)
+        try self.init(
+            specification: grammar.lexicalSpecification,
+            grammarFingerprint: grammar.incrementalSemanticFingerprint)
+    }
+
+    private init(
+        specification: LexicalSpecification,
+        grammarFingerprint: String
+    ) throws {
+        var value = try GrammarDrivenLexer(specification: specification)
+        value = GrammarDrivenLexer(rules: value.rules, grammarFingerprint: grammarFingerprint)
+        self = value
+    }
+
+    private init(rules: [Rule], grammarFingerprint: String?) {
+        self.rules = rules
+        self.grammarFingerprint = grammarFingerprint
     }
 
     public func scan(
@@ -270,6 +289,57 @@ public struct GrammarDrivenLexer: RestartableLexer {
 
 public typealias GrammarIncrementalTokenizer =
     RestartAndConvergeTokenizer<GrammarDrivenLexer>
+
+public extension RestartAndConvergeTokenizer where Scanner == GrammarDrivenLexer {
+    /// Applies a verified grammar revision to the lexical cache. Production-
+    /// only changes retain tokens; lexical changes replace the scanner and
+    /// discard all cached tokenization.
+    mutating func apply(
+        grammarChange change: GrammarChangeSet,
+        targetGrammar: Grammar
+    ) throws -> IncrementalExecutionEvidence {
+        let targetFingerprint = targetGrammar.incrementalSemanticFingerprint
+        let newScanner = try GrammarDrivenLexer(grammar: targetGrammar)
+        guard scanner.grammarFingerprint == change.sourceFingerprint,
+              targetFingerprint == change.targetFingerprint else {
+            let removed = replaceScanner(newScanner)
+            return .init(
+                strategy: .fallback,
+                fallback: .incompatibleArtifact,
+                measurements: [.init(
+                    dimension: .tokens, reused: 0, rebuilt: 0,
+                    removed: removed, strategy: "grammar-lexer-transition")])
+        }
+        let grammarMeasurement = ReuseMeasurement(
+            dimension: .grammarProductions,
+            reused: change.retainedProductionIDs.count,
+            rebuilt: change.addedProductionIDs.count,
+            removed: change.removedProductionIDs.count,
+            strategy: "structural-grammar-delta")
+
+        if change.requiresRetokenization {
+            let removed = replaceScanner(newScanner)
+            return .init(
+                strategy: .fallback,
+                fallback: .init(
+                    code: "lexer.grammarChange",
+                    detail: "Lexical rules changed; cached token boundaries were discarded."),
+                measurements: [.init(
+                    dimension: .tokens, reused: 0, rebuilt: 0,
+                    removed: removed, strategy: "grammar-lexer-transition"),
+                    grammarMeasurement])
+        }
+
+        let reused = cachedTokenCount
+        replaceScannerPreservingCache(newScanner)
+        return .init(
+            strategy: .incremental,
+            measurements: [.init(
+                dimension: .tokens, reused: reused, rebuilt: 0,
+                strategy: "grammar-lexer-transition"),
+                grammarMeasurement])
+    }
+}
 
 extension GrammarLexicalToken: IncrementalLexicalToken {
     public var incrementalID: String { id }

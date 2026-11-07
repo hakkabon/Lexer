@@ -151,7 +151,7 @@ public struct RestartAndConvergeTokenizer<Scanner: RestartableLexer>: Sendable {
         let output: IncrementalLexicalOutput<Token, Element, Diagnostic>
     }
 
-    private let scanner: Scanner
+    var scanner: Scanner
     private var previous: State?
 
     public init(scanner: Scanner) {
@@ -256,6 +256,22 @@ public struct RestartAndConvergeTokenizer<Scanner: RestartableLexer>: Sendable {
     }
 
     public mutating func reset() { previous = nil }
+
+    /// Replaces lexical semantics and discards cached tokens. Returns the
+    /// number of significant tokens that were invalidated.
+    @discardableResult
+    public mutating func replaceScanner(_ scanner: Scanner) -> Int {
+        let removed = previous?.output.tokens.count ?? 0
+        self.scanner = scanner
+        previous = nil
+        return removed
+    }
+
+    var cachedTokenCount: Int { previous?.output.tokens.count ?? 0 }
+
+    mutating func replaceScannerPreservingCache(_ scanner: Scanner) {
+        self.scanner = scanner
+    }
 
     private mutating func fullTokenize(revision: UInt64, text: String)
         -> RestartAndConvergeResult<Token, Element, Diagnostic> {

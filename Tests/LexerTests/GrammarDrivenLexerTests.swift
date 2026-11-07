@@ -1,4 +1,5 @@
 import Grammar
+import IncrementalParsing
 import Testing
 @testable import Lexer
 
@@ -63,5 +64,61 @@ struct GrammarDrivenLexerTests {
 
         #expect(result.diagnostics.map(\.message) == ["Unterminated BLOCK_COMMENT"])
         #expect(result.diagnostics[0].range == 3..<10)
+    }
+
+    @Test func productionOnlyGrammarChangeRetainsLexicalCache() throws {
+        let old = grammar(identifierPattern: "[a-z]+", extraProduction: false)
+        let changed = grammar(identifierPattern: "[a-z]+", extraProduction: true)
+        var tokenizer = RestartAndConvergeTokenizer(
+            scanner: try GrammarDrivenLexer(grammar: old))
+        let initial = tokenizer.tokenize(revision: 1, text: "alpha")
+
+        let evidence = try tokenizer.apply(
+            grammarChange: old.changeSet(to: changed),
+            targetGrammar: changed)
+
+        #expect(evidence.strategy == .incremental)
+        #expect(evidence.measurements.first { $0.dimension == .tokens }?.reused
+            == initial.output.tokens.count)
+        #expect(evidence.measurements.first {
+            $0.dimension == .grammarProductions
+        } != nil)
+    }
+
+    @Test func lexicalGrammarChangeDiscardsCachedTokenization() throws {
+        let old = grammar(identifierPattern: "[a-z]+", extraProduction: false)
+        let changed = grammar(identifierPattern: "[A-Za-z]+", extraProduction: false)
+        var tokenizer = RestartAndConvergeTokenizer(
+            scanner: try GrammarDrivenLexer(grammar: old))
+        _ = tokenizer.tokenize(revision: 1, text: "alpha")
+
+        let evidence = try tokenizer.apply(
+            grammarChange: old.changeSet(to: changed),
+            targetGrammar: changed)
+        let next = tokenizer.tokenize(revision: 2, text: "Alpha")
+
+        #expect(evidence.strategy == .fallback)
+        #expect(evidence.fallback?.code == "lexer.grammarChange")
+        #expect(evidence.measurements.first {
+            $0.dimension == .tokens
+        }?.removed ?? 0 > 0)
+        #expect(!next.metrics.incremental)
+    }
+
+    private func grammar(
+        identifierPattern: String,
+        extraProduction: Bool
+    ) -> Grammar {
+        var productions = [Production(
+            goal: "S", rule: [.terminal("IDENTIFIER")])]
+        if extraProduction {
+            productions.append(.init(goal: "Unused", rule: [.terminal("unused")]))
+        }
+        var grammar = Grammar(
+            productions: productions, start: "S", lexicalTokens: [:])
+        grammar.lexicalSpecification = .init(rules: [
+            .init(name: "IDENTIFIER", matcher: .regularExpression(identifierPattern)),
+        ])
+        return grammar
     }
 }
