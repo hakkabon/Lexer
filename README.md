@@ -32,6 +32,10 @@ For language kits, `GrammarDrivenLexer` is the preferred entry point. It
 consumes the `LexicalSpecification` produced by `GrammarParser`, retains a
 lossless trivia stream, reports UTF-16 ranges, and plugs directly into
 `RestartAndConvergeTokenizer` through the `GrammarIncrementalTokenizer` alias.
+`GrammarLanguageTokenizer` adds the reusable language-kit facade: a kit
+supplies only a `GrammarLexicalProjection`, while Lexer continues to own
+scanning, restart selection, convergence and reuse metrics. PL/0 and Pascal
+both consume this path.
 
 ```
 Lexer-FSA ──┐
